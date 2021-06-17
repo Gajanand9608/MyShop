@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 
 import '../widgets/products_grid.dart';
 import 'package:provider/provider.dart';
+import '../providers/products.dart';
 import '../widgets/badge.dart';
 import './cartScreen.dart';
 import '../providers/cart.dart';
+import 'package:sleek_circular_slider/sleek_circular_slider.dart';
 
 enum FilterOptions {
   Favorites,
@@ -19,6 +21,39 @@ class ProductsOverviewScreen extends StatefulWidget {
 
 class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
   var _showOnlyFavorites = false;
+  var _init = true;
+  var _isLoading = false;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+  }
+
+ final slider = SleekCircularSlider(
+      appearance: CircularSliderAppearance(
+    spinnerMode: true,
+    size: 50.0,
+  ));
+  @override
+  void didChangeDependencies() {
+    // TODO: implement didChangeDependencies
+    if (_init) {
+      setState(() {
+        _isLoading = true;
+      });
+      Provider.of<Products>(context).fetchAndSetProducts().then((_) {
+        setState(() {
+          _isLoading = false;
+        });
+      });
+    }
+
+    _init = false;
+    super.didChangeDependencies();
+  }
+
+ 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -47,15 +82,7 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
               PopupMenuItem(child: Text('Show All'), value: FilterOptions.All),
             ],
           ),
-          // Badge(
-          //   position: BadgePosition(top: 1, start: 10, end: 0),
-          //   animationType: BadgeAnimationType.scale,
-          //   badgeContent: Text('3'),
-          //   child: IconButton(
-          //     icon: Icon(Icons.shopping_cart_rounded),
-          //     onPressed: () {
-          //   ),
-          // ),
+          
           Consumer<Cart>(
             builder: (_, cart, ch) => Badge(
               child: ch,
@@ -71,7 +98,8 @@ class _ProductsOverviewScreenState extends State<ProductsOverviewScreen> {
         ],
       ),
       drawer: AppDrawer(),
-      body: ProductsGrid(_showOnlyFavorites),
+      body:
+          _isLoading ? Center(child: slider) : ProductsGrid(_showOnlyFavorites),
     );
   }
 }

@@ -87,7 +87,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     }
   }
 
-  void _saveForm() {
+  Future<void> _saveForm() async {
     //currentState.save is provided to save a form
     var isValid = _form.currentState.validate();
     if (!isValid) {
@@ -99,17 +99,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
     });
 
     if (_editedProduct.id != null) {
-      Provider.of<Products>(context, listen: false)
+      await Provider.of<Products>(context, listen: false)
           .updateProduct(_editedProduct.id, _editedProduct);
-      setState(() {
-        _isLoading = false;
-      });
-      Navigator.of(context).pop();
     } else {
-      Provider.of<Products>(context, listen: false)
-          .addProduct(_editedProduct)
-          .catchError((error) {
-        return showDialog<Null>(
+      try {
+        await Provider.of<Products>(context, listen: false)
+            .addProduct(_editedProduct);
+      } catch (error) {
+        await showDialog<Null>(
             context: context,
             builder: (ctx) => AlertDialog(
                   title: Text('An error Occurend!'),
@@ -122,13 +119,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         child: Text('Okay')),
                   ],
                 ));
-      }).then((_) {
-        setState(() {
-          _isLoading = false;
-        });
-        Navigator.of(context).pop();
-      });
-    }
+      } 
+    //   finally {
+    //     setState(() {
+    //       _isLoading = false;
+    //     });
+    //     Navigator.of(context).pop();
+    //   }
+     }
+    setState(() {
+      _isLoading = false;
+    });
+    Navigator.of(context).pop();
+
     // print(_editedProduct.title);
     // print(_editedProduct.price);
     // print(_editedProduct.description);
